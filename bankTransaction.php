@@ -30,9 +30,30 @@
                         
                         if($result->num_rows>0)
                         {
-                            while($row = $result->fetch_assoc())
+                            $row = $result->fetch_assoc();
+                            
+                            if(isset($_POST["amtCredit"]))
                             {
-                                creditAmount($row["balance"]);
+                                
+                                $val1 = $_POST["amtCredit"];
+                                
+                                if($val1>0)
+                                {
+                                    creditAmount($row["balance"], $val1);
+                                }else{
+                                    echo "<script>alert('Negative numbers are not supported')</script>";
+                                }
+                            }
+                            if(isset($_POST["amtDebit"]))
+                            {
+                                $val2 = $_POST["amtDebit"];
+                                if($val2>0)
+                                {
+                                    DebitAmount($row["balance"], $val2);
+                                }else{
+                                    echo "<script>alert('Negative numbers are not supported')</script>";
+                                } 
+                                
                             }
                         }
                         
@@ -92,11 +113,11 @@
                     }
                     
                     
-                    function creditAmount($bal)
+                    function creditAmount($bal, $credit)
                     {
                         
                             echo "<b>BALANCE : $bal</b><br>";
-                        $credit = $_POST["amt"];
+                        #$credit = $_POST["amtCredit"];
                             echo "<br><br><br><b>AMOUNT TO BE CREDITED : $credit</b><br>";
                         $encrypted_bal =  encrypt($credit);
                             echo "<br><br><br><b>AMOUNT TO BE CREDITED[encrypted] : $encrypted_bal</b><br>";
@@ -106,6 +127,23 @@
                         $GLOBALS["connection"]->query($sql);
                         
                     }
+                    
+                    function DebitAmount($bal, $debit)
+                    {
+                        
+                            echo "<b>BALANCE : $bal</b><br>";
+                        #$credit = $_POST["amtCredit"];
+                            echo "<br><br><br><b>AMOUNT TO BE DEBITED : $debit</b><br>";
+                        $encrypted_bal =  encrypt($debit);
+                            echo "<br><br><br><b>AMOUNT TO BE DEBITED[encrypted] : $encrypted_bal</b><br>";
+                        #$sum = bcmod(bcdiv($encrypted_bal,$bal),666001249);
+                        $sum = bcmod(bcmul($encrypted_bal,bcpow($bal,-1),-1),666001249);
+                            echo "<br><br><br><b>TOTAL SUM : $sum</b><br>";
+                         $sql = "UPDATE AccountDetails SET  balance='$sum' WHERE username='" . $_SESSION["username"] . "'";
+                        $GLOBALS["connection"]->query($sql);
+                        
+                    }
+                    
                     function encrypt($plaintext)
                     {
                         #Encrypts plaintext m. ciphertext c = g^m * r^n mod n^2. This function automatically generates random input r (to help with encryption).
@@ -137,13 +175,39 @@
                 <br><br>
                 <fieldset>
                     <legend>
-                        <b>CREDIT AMOUNT</b>
+                        <b>Credit</b>
                     </legend>
                     <form method='post' action='<?php htmlspecialchars($_SERVER["PHP_SELF"])?>'>
                         <table>
                             <tr>
                                 <td>
-                                    <input type='text' value='' name='amt'>
+                                    <b>Enter Amount :&emsp;</b>
+                                </td>
+                                <td>
+                                    <input type='text' value='0' name='amtCredit'>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input type='submit' value='Submit'>
+                                </td>
+                            </tr>
+                        </table>
+                    </form>
+                </fieldset>
+                
+                <fieldset>
+                    <legend>
+                        <b>Debit</b>
+                    </legend>
+                    <form method='post' action='<?php htmlspecialchars($_SERVER["PHP_SELF"])?>'>
+                        <table>
+                            <tr>
+                                <td>
+                                    <b>Enter Amount :&emsp;</b>
+                                </td>
+                                <td>
+                                    <input type='text' value="0" name = 'amtDebit'>
                                 </td>
                             </tr>
                             <tr>
