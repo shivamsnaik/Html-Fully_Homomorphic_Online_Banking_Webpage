@@ -119,10 +119,13 @@
                             echo "<b>BALANCE : $bal</b><br>";
                         #$credit = $_POST["amtCredit"];
                             echo "<br><br><br><b>AMOUNT TO BE CREDITED : $credit</b><br>";
+                            
                         $encrypted_bal =  encrypt($credit);
                             echo "<br><br><br><b>AMOUNT TO BE CREDITED[encrypted] : $encrypted_bal</b><br>";
+                            
                         $sum = bcmod(bcmul($encrypted_bal,$bal),666001249);
                             echo "<br><br><br><b>TOTAL SUM : $sum</b><br>";
+                            
                          $sql = "UPDATE AccountDetails SET  balance='$sum' WHERE username='" . $_SESSION["username"] . "'";
                         $GLOBALS["connection"]->query($sql);
                         
@@ -133,13 +136,17 @@
                         
                             echo "<b>BALANCE : $bal</b><br>";
                         #$credit = $_POST["amtCredit"];
+                            #$debit = 0-$debit;
                             echo "<br><br><br><b>AMOUNT TO BE DEBITED : $debit</b><br>";
+                            
                         $encrypted_bal =  encrypt($debit);
                             echo "<br><br><br><b>AMOUNT TO BE DEBITED[encrypted] : $encrypted_bal</b><br>";
+                            
                         #$sum = bcmod(bcdiv($encrypted_bal,$bal),666001249);
-                        $sum = bcmod(bcmul($encrypted_bal,bcpow($bal,-1),-1),666001249);
-                            echo "<br><br><br><b>TOTAL SUM : $sum</b><br>";
-                         $sql = "UPDATE AccountDetails SET  balance='$sum' WHERE username='" . $_SESSION["username"] . "'";
+                        $sum = bcmod(bcsub(decrypt($bal),$debit),25807);
+                            echo "<br><br><br><b>TOTAL SUM : " . encrypt($sum) . "</b><br>";
+                            
+                         $sql = "UPDATE AccountDetails SET  balance='" . encrypt($sum) . "' WHERE username='" . $_SESSION["username"] . "'";
                         $GLOBALS["connection"]->query($sql);
                         
                     }
@@ -149,7 +156,8 @@
                         #Encrypts plaintext m. ciphertext c = g^m * r^n mod n^2. This function automatically generates random input r (to help with encryption).
                         
                         $r = 46849;
-                        $cyphertext = bcmod((bcmod((bcpow(2,$plaintext)),666001249) * bcmod((bcpow($r,25807)),666001249)),666001249);
+                        #$cyphertext = bcmod((bcmod((bcpow(2,$plaintext)),666001249) * bcmod((bcpow($r,25807)),666001249)),666001249);
+                        $cyphertext = bcmod((bcpowmod(2,$plaintext,666001249) * bcpowmod($r,25807,666001249)),666001249);
                         echo "<b>$cyphertext</b>";
                         return $cyphertext;
                         
